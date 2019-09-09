@@ -2,7 +2,7 @@
 //@HEADER
 // *****************************************************************************
 //
-//                            serializers_headers.h
+//                                   counter.h
 //                           DARMA Toolkit v. 1.0.0
 //                 DARMA/checkpoint => Serialization Library
 //
@@ -42,14 +42,40 @@
 //@HEADER
 */
 
-#if !defined INCLUDED_SERDES_SERIALIZERS_HEADERS
-#define INCLUDED_SERDES_SERIALIZERS_HEADERS
+#if !defined INCLUDED_SERDES_COUNTER
+#define INCLUDED_SERDES_COUNTER
 
 #include "serdes_common.h"
 #include "base_serializer.h"
-#include "sizer.h"
-#include "packer.h"
-#include "unpacker.h"
-#include "counter.h"
 
-#endif /*INCLUDED_SERDES_SERIALIZERS_HEADERS*/
+namespace serdes {
+
+/*
+ * A class to use in automated testing that system/application code
+ * changes don't break serialization routines by changing the number
+ * of members. Produces a syntactic count of serialization calls
+ * resulting from a call to a type's serializer. That count can then
+ * be compared to results from an inspection utility indicating how
+ * many members are present.
+ */
+struct Counter : Serializer {
+  Counter()
+    : Serializer{ModeType::Packing)
+    { }
+
+  SerialSizeType getCount() const { return num_units_; }
+
+  template <typename T>
+  static void contiguousTyped(Counter& s, T* ptr, SerialSizeType num_elms) {
+    // This is a syntactic count of static serialization call sites
+    // Hence, count calls and not elements
+    s.num_units_++;
+  }
+
+private:
+  int num_units_ = 0;
+};
+
+} /* end namespace serdes */
+
+#endif /*INCLUDED_SERDES_COUNTER*/
